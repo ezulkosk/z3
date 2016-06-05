@@ -34,7 +34,7 @@ struct bit_blaster_model_converter : public model_converter {
     ast_manager & m() const { return m_vars.get_manager(); }
     
     bit_blaster_model_converter(ast_manager & m, obj_map<func_decl, expr*> const & const2bits):m_vars(m), m_bits(m) {
-        obj_map<func_decl, expr*>::iterator it  = const2bits.begin();
+    	obj_map<func_decl, expr*>::iterator it  = const2bits.begin();
         obj_map<func_decl, expr*>::iterator end = const2bits.end();
         for (; it != end; ++it) {
             func_decl * v = it->m_key;
