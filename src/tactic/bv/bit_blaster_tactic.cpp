@@ -121,7 +121,7 @@ class bit_blaster_tactic : public tactic {
 					map_file << "\n";
 				}
 				map_file.close();
-				exit(1);
+				exit(0);
 			}
             m_rewriter->cleanup();
         }
