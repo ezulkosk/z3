@@ -84,6 +84,7 @@ public:
     void set_double(char const * k, double v);
     void set_str(symbol const & k, char const * v);
     void set_str(char const * k, char const * v);
+    void set_str(symbol const & k, std::string * v);
     void set_rat(symbol const & k, rational const & v);
     void set_rat(char const * k, rational const & v); 
     void set_sym(symbol const & k, symbol const & v);

@@ -723,6 +723,12 @@ void params_ref::set_str(symbol const & k, char const * v) {
     m_params->set_str(k, v);
 }
 
+
+void params_ref::set_str(symbol const & k, std::string * v) {
+    init();
+    m_params->set_str(k, v->c_str());
+}
+
 void params_ref::set_str(char const * k, char const * v) {
     init();
     m_params->set_str(k, v);

@@ -36,7 +36,7 @@ class bit_blaster_tactic : public tactic {
         bit_blaster_rewriter*  m_rewriter;    
         unsigned               m_num_steps;
         bool                   m_blast_quant;
-        bool                   m_dump_bv_bool_map;
+        char const*            m_dump_bv_bool_map;
 
         imp(ast_manager & m, bit_blaster_rewriter* rw, params_ref const & p):
             m_base_rewriter(m, p),
@@ -46,7 +46,7 @@ class bit_blaster_tactic : public tactic {
 
         void updt_params_core(params_ref const & p) {
             m_blast_quant = p.get_bool("blast_quant", false);
-            m_dump_bv_bool_map = p.get_bool("dump_bv_bool_map", false); //EDXXX
+            m_dump_bv_bool_map = p.get_str("dump_bv_bool_map", "");
         }
 
         void updt_params(params_ref const & p) {
@@ -103,19 +103,16 @@ class bit_blaster_tactic : public tactic {
             result.push_back(g.get());
             TRACE("after_bit_blaster", g->display(tout); if (mc) mc->display(tout); tout << "\n";);
 
-            if(m_dump_bv_bool_map){ // EDXXX
+            if(*m_dump_bv_bool_map != 0){
             	std::ofstream map_file;
-            	map_file.open("bv_bool_map");
+            	map_file.open(m_dump_bv_bool_map);
 				obj_map<func_decl, expr*>::iterator it  = m_rewriter->const2bits().begin();
 				obj_map<func_decl, expr*>::iterator end = m_rewriter->const2bits().end();
 				for (; it != end; ++it) {
 					func_decl * v = it->m_key;
 					expr * bits   = it->m_value;
 					app * app = to_app(bits);
-
 					map_file << v->get_name();
-					//unsigned indent = v->get_name().size() + 4;
-					//map_file << mk_ismt2_pp(bits, m(), indent) << ")";
 					unsigned bv_sz = app->get_num_args();
 					for(unsigned i = 0; i < bv_sz; i++){
 						expr * bit = app->get_arg(i);
@@ -164,7 +161,7 @@ public:
         r.insert("blast_add", CPK_BOOL, "(default: true) bit-blast adders.");
         r.insert("blast_quant", CPK_BOOL, "(default: false) bit-blast quantified variables.");
         r.insert("blast_full", CPK_BOOL, "(default: false) bit-blast any term with bit-vector sort, this option will make E-matching ineffective in any pattern containing bit-vector terms.");
-        r.insert("dump_bv_bool_map", CPK_BOOL, "(default: false) dump a mapping from bitvector bits to corresponding Boolean variables."); //EDXXX
+        r.insert("dump_bv_bool_map", CPK_STRING, "(default: '') dump a mapping from bitvector bits to corresponding Boolean variables.");
     }
      
     virtual void operator()(goal_ref const & g, 

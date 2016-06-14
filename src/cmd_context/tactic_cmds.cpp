@@ -530,6 +530,11 @@ static tactic * mk_using_params(cmd_context & ctx, sexpr * n) {
                 throw cmd_exception("invalid parameter value, numeral expected", c->get_line(), c->get_pos());
             p.set_double(param_name, c->get_numeral().get_double());
             break;
+        case CPK_STRING:
+			if (!c->is_string())
+				throw cmd_exception("invalid parameter value, string expected", c->get_line(), c->get_pos());
+			p.set_str(param_name, c->get_string().c_str());
+			break;
         default:
             throw cmd_exception("invalid using-params combinator, unsupported parameter kind");
         }
