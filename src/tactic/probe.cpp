@@ -453,6 +453,7 @@ public:
     }
 };
 
+
 probe * mk_num_consts_probe() {
     return alloc(num_consts_probe, false, 0);
 }
@@ -563,6 +564,52 @@ public:
 probe * mk_has_quantifier_probe() {
     return alloc(has_quantifier_probe);
 }
+
+
+// get_bv_fid
+class num_bv_probe : public probe {
+    char const * m_family; // (Ignored if m_bool == true), if != 0 and m_bool == true, then track only constants of the given family.
+    struct proc {
+        ast_manager & m;
+        family_id     m_fid;
+        unsigned      m_counter;
+        proc(ast_manager & _m, char const * family):m(_m), m_counter(0) {
+            if (family != 0)
+                m_fid = m.mk_family_id(family);
+            else
+                m_fid = null_family_id;
+        }
+        void operator()(quantifier *) {}
+        void operator()(var *) {}
+        void operator()(app * n) {
+            if (n->get_num_args() == 0 && !m.is_value(n)) {
+				if (m_fid == null_family_id) {
+					if (!m.is_bool(n))
+						m_counter++;
+				}
+				else {
+					if (m.get_sort(n)->get_family_id() == m_fid)
+						m_counter++;
+				}
+            }
+        }
+    };
+
+public:
+    num_bv_probe(bool b, char const * f):
+        m_family(f) {
+    }
+    virtual result operator()(goal const & g) {
+        proc p(g.m(), m_family);
+        unsigned sz = g.size();
+        expr_fast_mark1 visited;
+        for (unsigned i = 0; i < sz; i++) {
+            for_each_expr_core<proc, expr_fast_mark1, true, true>(p, visited, g.form(i));
+        }
+        return result(p.m_counter);
+    }
+};
+
 
 
 
