@@ -29,6 +29,7 @@ void bv_rewriter::updt_local_params(params_ref const & _p) {
     m_mul2concat = p.mul2concat();
     m_bit2bool = p.bit2bool();
     m_trailing = p.bv_trailing();
+    m_sort_commutative = p.bv_sort_comm();
     m_blast_eq_value = p.blast_eq_value();
     m_split_concat_eq = p.split_concat_eq();
     m_udiv2mul = p.udiv2mul();
@@ -1535,6 +1536,7 @@ br_status bv_rewriter::mk_bv_and(unsigned num, expr * const * args, expr_ref & r
         new_args.push_back(m_util.mk_bv_not(args[i]));
     }
     SASSERT(num == new_args.size());
+
     result = m_util.mk_bv_not(m_util.mk_bv_or(new_args.size(), new_args.c_ptr()));
     return BR_REWRITE3;
 }
@@ -2159,6 +2161,19 @@ br_status bv_rewriter::mk_eq_core(expr * lhs, expr * rhs, expr_ref & result) {
     if (swapped) {
         result = m().mk_eq(lhs, rhs);
         return BR_DONE;
+    }
+
+    if(m_sort_commutative){
+    	// printf("commute\n");
+    	// ptr_buffer<expr> args; // yea....
+    	// args.push_back(lhs);
+    	// args.push_back(rhs);
+    	// std::sort(args.begin(), args.end(), ast_to_lt());
+    	if(lt(lhs, rhs))
+    		result =  m().mk_eq(lhs, rhs);
+    	else
+    		result =  m().mk_eq(rhs, lhs);
+		return BR_DONE;
     }
 
     return BR_FAILED;
