@@ -29,7 +29,6 @@ void bv_rewriter::updt_local_params(params_ref const & _p) {
     m_mul2concat = p.mul2concat();
     m_bit2bool = p.bit2bool();
     m_trailing = p.bv_trailing();
-    m_sort_commutative = p.bv_sort_comm();
     m_blast_eq_value = p.blast_eq_value();
     m_split_concat_eq = p.split_concat_eq();
     m_udiv2mul = p.udiv2mul();
