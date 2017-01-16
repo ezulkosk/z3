@@ -28,6 +28,8 @@ Notes:
 #include"model_pp.h"
 #include"rewriter_types.h"
 
+#define BLAST 0 //EDXXX
+
 class bit_blaster_tactic : public tactic {
 
 
@@ -78,21 +80,38 @@ class bit_blaster_tactic : public tactic {
             proof_ref  new_pr(m());
             unsigned size = g->size();
             bool change = false;
+            unsigned prev_count = size; // EDXXX
             for (unsigned idx = 0; idx < size; idx++) {
                 if (g->inconsistent())
                     break;
                 expr * curr = g->form(idx);
-                (*m_rewriter)(curr, new_curr, new_pr);
+#if BLAST
+                printf("ORIGINAL\n");
+				std::cout<< mk_pp(curr, m()) <<std::endl;
+#endif
+				(*m_rewriter)(curr, new_curr, new_pr);
                 m_num_steps += m_rewriter->get_num_steps();
                 if (proofs_enabled) {
                     proof * pr = g->pr(idx);
                     new_pr     = m().mk_modus_ponens(pr, new_pr);
                 }
-                if (curr != new_curr) {
+#if BLAST
+            	printf("BLASTED\n");
+#endif
+            	if (curr != new_curr) {
                     change = true;
                     TRACE("bit_blaster", tout << mk_pp(curr, m()) << " -> " << mk_pp(new_curr, m()) << "\n";);
                     g->update(idx, new_curr, new_pr, g->dep(idx));
                 }
+#if BLAST
+            	std::cout<< mk_pp(g->form(idx), m()) <<std::endl;
+
+            	for(int i = prev_count; i < g->size(); i++){
+                	printf("BLASTED\n");
+                	std::cout<< mk_pp(g->form(i), m()) <<std::endl;
+                }
+                prev_count = g->size();
+#endif
             }
             
             if (change && g->models_enabled())  

@@ -131,7 +131,7 @@ public:
     void mk_iff(expr * lhs, expr * rhs, expr_ref & result) { mk_eq(lhs, rhs, result); }
     void mk_xor(expr * lhs, expr * rhs, expr_ref & result);
     void mk_and(unsigned num_args, expr * const * args, expr_ref & result) {
-        if (mk_and_core(num_args, args, result) == BR_FAILED) {
+    	if (mk_and_core(num_args, args, result) == BR_FAILED) {
             SASSERT(!m_elim_and);
             result = m().mk_and(num_args, args);
         }

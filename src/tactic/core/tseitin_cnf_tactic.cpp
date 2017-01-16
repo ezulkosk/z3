@@ -56,6 +56,9 @@ Notes:
 #include"simplify_tactic.h"
 #include"cooperate.h"
 
+#include"ast_pp.h" //EDXXX
+#define BLAST 0
+
 static void swap_if_gt(expr * & n1, expr * & n2) {
     if (n1->get_id() > n2->get_id())
         std::swap(n1, n2);
@@ -202,6 +205,15 @@ class tseitin_cnf_tactic : public tactic {
         
         void visit(expr * n, bool & visited, bool root = false) {
         start:
+			//std::cout<<"EDXXX VISIT visit\n";
+			//std::cout<<"EDXXX"<<n->get_name()<<std::endl;
+			//std::cout<<mk_pp(to_app(to_app(n)), m)<<std::endl;
+			//int nargs = to_app(n)->get_num_args();
+			//for(int i = 0; i < nargs; i++){
+			//	std::cout<<mk_pp(to_app(to_app(n)->get_arg(i)), m)<<std::endl;
+			//}
+			//std::cout<<"\n";
+
             if (!is_app(n))
                 return;
             if (m_cache.contains(to_app(n)))
@@ -209,6 +221,9 @@ class tseitin_cnf_tactic : public tactic {
             if (to_app(n)->get_num_args() == 0)
                 return;
             func_decl * f = to_app(n)->get_decl();
+
+
+
             if (f->get_family_id() != m.get_basic_family_id())
                 return;
             switch (f->get_decl_kind()) {
@@ -229,6 +244,8 @@ class tseitin_cnf_tactic : public tactic {
                 return;
             case OP_ITE:
             case OP_EQ:
+            	std::cout<<"EDXXX EQ visit\n";
+
                 if (m.is_bool(to_app(n)->get_arg(1))) {
                     visited = false;
                     push_frame(to_app(n));
@@ -313,9 +330,15 @@ class tseitin_cnf_tactic : public tactic {
         }
         
         void mk_clause(unsigned num, expr * const * ls) {
-            expr_ref cls(m);
+#if BLAST
+        	printf("CLAUSE\n");
+#endif
+        	expr_ref cls(m);
             m_rw.mk_or(num, ls, cls);
             m_clauses.push_back(cls);
+#if BLAST
+            std::cout<<mk_pp(to_app(cls.get()), m)<<std::endl;
+#endif
             if (m_produce_unsat_cores)
                 m_deps.push_back(m_curr_dep);
         }
@@ -822,8 +845,13 @@ class tseitin_cnf_tactic : public tactic {
                 m_mc = 0;
 
             unsigned size = g->size();
+            //printf("EDXXX Goal size: %d\n", g->size());
             for (unsigned idx = 0; idx < size; idx++) {
-                process(g->form(idx), g->dep(idx));
+#if BLAST
+            	std::cout << "GOAL" << std::endl;
+            	std::cout<<mk_pp(g->form(idx), m)<<std::endl;
+#endif
+            	process(g->form(idx), g->dep(idx));
                 g->update(idx, m.mk_true(), 0, 0); // to save memory
             }
 
