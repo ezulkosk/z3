@@ -31,6 +31,10 @@ class sat_tactic : public tactic {
         sat2goal        m_sat2goal;
         sat::solver     m_solver;
         params_ref      m_params;
+        char const* m_dump_dimacs;
+    	std::ofstream dimacs_file;
+
+
         
         imp(ast_manager & _m, params_ref const & p):
             m(_m),
@@ -67,6 +71,14 @@ class sat_tactic : public tactic {
 
             CASSERT("sat_solver", m_solver.check_invariant());
             IF_VERBOSE(TACTIC_VERBOSITY_LVL, m_solver.display_status(verbose_stream()););
+
+            m_dump_dimacs = m_params.get_str("dump_dimacs", "");
+            if(*m_dump_dimacs != 0){
+				dimacs_file.open(m_dump_dimacs);
+				m_solver.display_dimacs(dimacs_file);
+				dimacs_file.close();
+				exit(0);
+			}
             TRACE("sat_dimacs", m_solver.display_dimacs(tout););
             dep2assumptions(dep2asm, assumptions);
             lbool r = m_solver.check(assumptions.size(), assumptions.c_ptr());
@@ -187,6 +199,7 @@ public:
                     proof_converter_ref & pc,
                     expr_dependency_ref & core) {
         imp proc(g->m(), m_params);
+
         scoped_set_imp set(this, &proc);
         try {
             proc(g, result, mc, pc, core);

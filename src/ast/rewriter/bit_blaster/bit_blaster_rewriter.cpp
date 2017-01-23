@@ -348,8 +348,8 @@ MK_PARAMETRIC_UNARY_REDUCE(reduce_sign_extend, mk_sign_extend);
 
     br_status reduce_app(func_decl * f, unsigned num, expr * const * args, expr_ref & result, proof_ref & result_pr) {
         result_pr = 0;
+        //std::cout << "EDXXX bit_blaster: " << f->get_name() << "\n";
         TRACE("bit_blaster_red_app", tout << f->get_name() << " ";
-        // std::cout << "EDXXX bit_blaster" << f->get_name() << "\n";
               for (unsigned i = 0; i < num; ++i) tout << mk_pp(args[i], m()) << "\n";
               tout << "\n\n";);
         if (num == 0 && f->get_family_id() == null_family_id && butil().is_bv_sort(f->get_range())) {

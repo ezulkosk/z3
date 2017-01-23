@@ -654,6 +654,7 @@ void rewriter_tpl<Config>::resume_core(expr_ref & result, proof_ref & result_pr)
         }
         switch (t->get_kind()) {
         case AST_APP:
+        	//std::cout<<"rewriterdef: "<< to_app(t)->get_decl()->get_name() <<std::endl;
             process_app<ProofGen>(to_app(t), fr);
             break;
         case AST_QUANTIFIER:

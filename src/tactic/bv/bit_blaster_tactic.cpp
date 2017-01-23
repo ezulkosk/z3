@@ -97,6 +97,7 @@ class bit_blaster_tactic : public tactic {
                 }
 #if BLAST
             	printf("BLASTED\n");
+            	printf("Before: %d %d\n", prev_count, g->size());
 #endif
             	if (curr != new_curr) {
                     change = true;
@@ -105,6 +106,7 @@ class bit_blaster_tactic : public tactic {
                 }
 #if BLAST
             	std::cout<< mk_pp(g->form(idx), m()) <<std::endl;
+            	printf("After: %d %d\n", prev_count, g->size());
 
             	for(int i = prev_count; i < g->size(); i++){
                 	printf("BLASTED\n");
@@ -140,7 +142,6 @@ class bit_blaster_tactic : public tactic {
 					map_file << "\n";
 				}
 				map_file.close();
-				exit(0);
 			}
             m_rewriter->cleanup();
         }

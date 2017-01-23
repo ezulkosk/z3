@@ -29,6 +29,8 @@ Notes:
 #ifndef GOAL2SAT_H_
 #define GOAL2SAT_H_
 
+#define TREE true
+
 #include"goal.h"
 #include"sat_solver.h"
 #include"model_converter.h"

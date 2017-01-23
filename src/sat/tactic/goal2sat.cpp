@@ -38,6 +38,7 @@ Notes:
 #include"ast_pp.h"
 #include<sstream>
 
+
 struct goal2sat::imp {
     struct frame {
         app *    m_t;
@@ -60,7 +61,60 @@ struct goal2sat::imp {
     unsigned long long          m_max_memory;
     expr_ref_vector             m_trail;
     bool                        m_default_external;
-    
+
+
+#if TREE
+
+    //WARNING LINE 275 still printing below
+    char const* TREE_PREFIX = "";
+    char const* m_dump_tseitin_graph;
+    char const* m_dump_bits2dimacs;
+	std::ofstream graph_file;
+	std::ofstream bits2dimacs_file;
+
+
+	void print_graph(int k, sat::literal * lits, int num){
+		if(*m_dump_tseitin_graph != 0){
+			graph_file<<TREE_PREFIX << k << " :";
+			for (unsigned i = 0; i < num; i++) {
+				graph_file << " " << lits[i].var();
+			}
+			graph_file << std::endl;
+		}
+	}
+
+	void print_graph(int k){
+		if(*m_dump_tseitin_graph != 0){
+			graph_file << TREE_PREFIX << k << " :";
+			graph_file << std::endl;
+		}
+	}
+
+	void print_graph(int k, sat::literal l1){
+		if(*m_dump_tseitin_graph != 0){
+			graph_file<<TREE_PREFIX << k << " : " << l1.var();
+			graph_file << std::endl;
+		}
+	}
+
+	void print_graph(int k, sat::literal l1, sat::literal l2){
+		if(*m_dump_tseitin_graph != 0){
+			graph_file<<TREE_PREFIX << k << " : " << l1.var() << " " << l2.var();
+			graph_file << std::endl;
+		}
+	}
+
+	void print_graph(int k, sat::literal l1, sat::literal l2, sat::literal l3){
+		if(*m_dump_tseitin_graph != 0){
+			graph_file<<TREE_PREFIX << k << " : " << l1.var() << " " << l2.var() << " " << l3.var();
+			graph_file << std::endl;
+		}
+	}
+
+
+
+#endif
+
     imp(ast_manager & _m, params_ref const & p, sat::solver & s, atom2bool_var & map, dep2asm_map& dep2asm, bool default_external):
         m(_m),
         m_solver(s),
@@ -75,6 +129,10 @@ struct goal2sat::imp {
     void updt_params(params_ref const & p) {
         m_ite_extra       = p.get_bool("ite_extra", true);
         m_max_memory      = megabytes_to_bytes(p.get_uint("max_memory", UINT_MAX));
+#if TREE
+        m_dump_tseitin_graph = p.get_str("dump_tseitin_graph", "");
+        m_dump_bits2dimacs = p.get_str("dump_bits2dimacs", "");
+#endif
     }
 
     void throw_op_not_handled(std::string const& s) {
@@ -128,6 +186,11 @@ struct goal2sat::imp {
                 m_map.insert(t, v);
                 l = sat::literal(v, sign);
                 TRACE("goal2sat", tout << "new_var: " << v << "\n" << mk_ismt2_pp(t, m) << "\n";);
+                if(*m_dump_bits2dimacs != 0){
+					bits2dimacs_file << mk_ismt2_pp(t, m) << " " << v;
+					bits2dimacs_file << std::endl;
+				}
+                TRACE("goal2sat_atom", tout << "new_var: " << v << "\n" << mk_ismt2_pp(t, m) << "\n";);
             }
         }
         else {
@@ -135,6 +198,13 @@ struct goal2sat::imp {
             l = sat::literal(v, sign);
         }
         SASSERT(l != sat::null_literal);
+#if TREE
+        if(root){
+        	print_graph(l.var());
+        	//std::cout<<"[TREE atom] " << l.var();
+        	//std::cout << std::endl;
+        }
+#endif
         if (root)
             mk_clause(l);
         else
@@ -209,7 +279,14 @@ struct goal2sat::imp {
                 }
             }
             else {
-                mk_clause(m_result_stack.size(), m_result_stack.c_ptr());
+#if TREE
+                sat::literal * lits = m_result_stack.end() - num;
+				for (unsigned i = 0; i < num; i++) {
+					graph_file<< TREE_PREFIX << lits[i].var() << " :";
+					graph_file << std::endl;
+				}
+#endif
+                mk_clause(m_result_stack.size(), m_result_stack.c_ptr()); //ED XXX might need to add here
                 m_result_stack.reset();
             }
         }
@@ -222,6 +299,9 @@ struct goal2sat::imp {
             for (unsigned i = 0; i < num; i++) {
                 mk_clause(~lits[i], l);
             }
+#if TREE
+            print_graph(k, lits, num);
+#endif
             m_result_stack.push_back(~l);
             lits = m_result_stack.end() - num - 1;
             // remark: mk_clause may perform destructive updated to lits.
@@ -243,6 +323,12 @@ struct goal2sat::imp {
         sat::literal  e = m_result_stack[sz-1];
         if (root) {
             SASSERT(sz == 3);
+#if TREE
+            print_graph(c.var());
+            print_graph(t.var());
+            print_graph(e.var());
+#endif
+
             if (sign) {
                 mk_clause(~c, ~t);
                 mk_clause(c,  ~e);
@@ -255,6 +341,9 @@ struct goal2sat::imp {
         }
         else {
             sat::bool_var k = m_solver.mk_var();
+#if TREE
+            print_graph(k, c, t, e);
+#endif
             sat::literal  l(k, false);
             m_cache.insert(n, l);
             mk_clause(~l, ~c, t);
@@ -280,6 +369,10 @@ struct goal2sat::imp {
         sat::literal  l2 = m_result_stack[sz-2];
         if (root) {
             SASSERT(sz == 2);
+#if TREE
+            print_graph(l1.var());
+            print_graph(l2.var());
+#endif
             if (sign) {
                 mk_clause(l1, l2);
                 mk_clause(~l1, ~l2);
@@ -292,6 +385,9 @@ struct goal2sat::imp {
         }
         else {
             sat::bool_var k = m_solver.mk_var();
+#if TREE
+            print_graph(k, l1, l2);
+#endif
             sat::literal  l(k, false);
             m_cache.insert(t, l);
             mk_clause(~l, l1, ~l2);
@@ -391,6 +487,14 @@ struct goal2sat::imp {
     }
 
     void operator()(goal const & g) {
+#if TREE
+    	if(*m_dump_tseitin_graph != 0){
+			graph_file.open(m_dump_tseitin_graph);
+    	}
+    	if(*m_dump_bits2dimacs != 0){
+			bits2dimacs_file.open(m_dump_bits2dimacs);
+		}
+#endif
         m_interface_vars.reset();
         collect_boolean_interface(g, m_interface_vars);
         unsigned size = g.size();
@@ -430,6 +534,12 @@ struct goal2sat::imp {
         skip_dep:
             ;
         }
+#if TREE
+		if(*m_dump_tseitin_graph != 0){
+			graph_file.close();
+			bits2dimacs_file.close();
+		}
+#endif
     }
 
     void operator()(unsigned sz, expr * const * fs) {
@@ -479,6 +589,10 @@ goal2sat::goal2sat():m_imp(0) {
 
 void goal2sat::collect_param_descrs(param_descrs & r) {
     insert_max_memory(r);
+
+    r.insert("dump_tseitin_graph", CPK_STRING, "(default: '') Dump the tseitin DAG. Warning - top level nodes may be dumped several times.");
+    r.insert("dump_dimacs", CPK_STRING, "(default: '') Dump the dimacs.");
+    r.insert("dump_bits2dimacs", CPK_STRING, "(default: '') Dump bits2dimacs.");
     r.insert("ite_extra", CPK_BOOL, "(default: true) add redundant clauses (that improve unit propagation) when encoding if-then-else formulas");
 }
 
