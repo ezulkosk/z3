@@ -75,9 +75,9 @@ struct goal2sat::imp {
 
 	void print_graph(int k, sat::literal * lits, int num){
 		if(*m_dump_tseitin_graph != 0){
-			graph_file<<TREE_PREFIX << k << " :";
+			graph_file<<TREE_PREFIX << k+1 << " :";
 			for (unsigned i = 0; i < num; i++) {
-				graph_file << " " << lits[i].var();
+				graph_file << " " << lits[i].var()+1;
 			}
 			graph_file << std::endl;
 		}
@@ -85,28 +85,28 @@ struct goal2sat::imp {
 
 	void print_graph(int k){
 		if(*m_dump_tseitin_graph != 0){
-			graph_file << TREE_PREFIX << k << " :";
+			graph_file << TREE_PREFIX << k+1 << " :";
 			graph_file << std::endl;
 		}
 	}
 
 	void print_graph(int k, sat::literal l1){
 		if(*m_dump_tseitin_graph != 0){
-			graph_file<<TREE_PREFIX << k << " : " << l1.var();
+			graph_file<<TREE_PREFIX << k+1 << " : " << l1.var()+1;
 			graph_file << std::endl;
 		}
 	}
 
 	void print_graph(int k, sat::literal l1, sat::literal l2){
 		if(*m_dump_tseitin_graph != 0){
-			graph_file<<TREE_PREFIX << k << " : " << l1.var() << " " << l2.var();
+			graph_file<<TREE_PREFIX << k+1 << " : " << l1.var()+1 << " " << l2.var()+1;
 			graph_file << std::endl;
 		}
 	}
 
 	void print_graph(int k, sat::literal l1, sat::literal l2, sat::literal l3){
 		if(*m_dump_tseitin_graph != 0){
-			graph_file<<TREE_PREFIX << k << " : " << l1.var() << " " << l2.var() << " " << l3.var();
+			graph_file<<TREE_PREFIX << k+1 << " : " << l1.var()+1 << " " << l2.var()+1 << " " << l3.var()+1;
 			graph_file << std::endl;
 		}
 	}
@@ -282,7 +282,7 @@ struct goal2sat::imp {
 #if TREE
                 sat::literal * lits = m_result_stack.end() - num;
 				for (unsigned i = 0; i < num; i++) {
-					graph_file<< TREE_PREFIX << lits[i].var() << " :";
+					graph_file<< TREE_PREFIX << lits[i].var()+1 << " :";
 					graph_file << std::endl;
 				}
 #endif
